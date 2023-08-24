@@ -4,11 +4,11 @@ var SvInt1C: procedure;
 	gd,gm:integer;
     i,j,bonusx,bonusy,napr,napr2,timer:integer;
 	fps:longint;
-	fpss, scores:string;
-    pause, effects,drawcomplete,bonus:boolean;
+	fpss, scores, mes:string;
+    pause, gameover, effects,drawcomplete,bonus,cheat:boolean;
     k:char;
 	Driver, Mode, TestDriver, ErrCode: Integer;
-	posx,posy : array[1..100] of integer;
+	posx,posy : array[1..240] of integer;
 	length:integer;
 
 {$F+}
@@ -21,6 +21,26 @@ end;
 procedure NewInt1C; interrupt; {ÝáÖ¤¨¦çá  Öåá ¢ åñë ¨å 18.2 á ó ë ã¨ÆçÔ¦ç}
 begin
 	timer:=timer+1;
+end;
+
+procedure cheaton;
+begin
+	for i:=0 to 19 do
+		for j:=0 to 11 do
+			drawbonus(i,j);
+	for i:=1 to length do 
+		drawsegment(posx[i],posy[i]);
+end;
+
+procedure start;
+begin
+	fillboard;
+	for i:=1 to length do 
+		drawsegment(posx[i],posy[i]);
+	napr:=1;i:=3;j:=3; timer:=0 ;effects:=true; drawcomplete:=false; bonus:=false;
+    posx[1]:=7;posx[2]:=6;posx[3]:=5;posx[4]:=4;posx[5]:=3;
+    posy[1]:=5;posy[2]:=5;posy[3]:=5;posy[4]:=5;posy[5]:=5;
+    length:=3;mes:='pause';
 end;
 
 begin
@@ -45,10 +65,10 @@ begin
 	napr:=1;i:=3;j:=3; timer:=0 ;effects:=true; drawcomplete:=false; bonus:=false;
         posx[1]:=7;posx[2]:=6;posx[3]:=5;posx[4]:=4;posx[5]:=3;
         posy[1]:=5;posy[2]:=5;posy[3]:=5;posy[4]:=5;posy[5]:=5;
-        length:=3;
+        length:=3; mes:='pause';
 	for i:=1 to length do 
 		drawsegment(posx[i],posy[i]);
-	
+	Randomize;
 	repeat
 		if timer>=4 then begin
 			timer:=0;
@@ -56,7 +76,7 @@ begin
 			bar(0,192,320,200);
 			OutTextXY(5,192,'Score: '+scores);
 			OutTextXY(85,192,'fps='+fpss);
-			if pause then OutTextXY(165,192,'pause');
+			if pause then OutTextXY(165,192,mes);
 			fps:=0;
 			drawcomplete:=false;
 		end;
@@ -71,7 +91,9 @@ begin
 			else if (k=#75) and (napr<>1)and (napr2=0) then napr2:=3
 			else if (k=#72) and (napr<>2)and (napr2=0) then napr2:=4
 			else if k='e' then effects:=not effects
-			else if k='p' then pause:=not pause;
+			else if (k='p')and (gameover) then begin pause:=not pause;start; end
+			else if (k='p') then pause:=not pause
+			else if k='c' then begin cheaton; cheat:=true; bonusx:=-1; bonus:=true;end;
 		end;
 
 		if (not drawcomplete)and (not pause) then begin
@@ -81,7 +103,10 @@ begin
 			end;
 			
 			if (posx[1]=bonusx) and (posy[1]=bonusy) then begin length:=length+1; bonus:=false; end;
-			boardsegment(posx[length],posy[length]);
+			if cheat then length:=length+1;
+			if length=240 then begin mes:='you win!'; pause:=true; gameover:=true;end;
+			if not cheat then
+				boardsegment(posx[length],posy[length]);
 			
 			for i:=length downto 2 do begin
 				posx[i]:=posx[i-1];
@@ -107,6 +132,7 @@ begin
 			
 			{fillboard;
 			for i:=1 to length do begin}
+
 			drawsegment(posx[1],posy[1]);
 			{end;}
 			{if (i<0) or (i>19) or (j<0) or (j>11) then begin

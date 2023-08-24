@@ -80,7 +80,7 @@ Implementation
 			sy:=y*16;
 			if (x+y)mod 2 =0 then setfillstyle(1,214)
 			else setfillstyle(1,216);
-			bar(sx,sy,sx+16,sy+16);
+			bar(sx,sy,sx+15,sy+15);
 	end;
 
 	procedure drawsegment;

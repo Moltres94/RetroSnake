@@ -2,11 +2,10 @@ program game;
 uses crt,graph,windos,sprite;
 var SvInt1C: procedure;
 	gd,gm:integer;
-    i,j,ib,jb,napr,napr2,timer:integer;
+    i,j,bonusx,bonusy,napr,napr2,timer:integer;
 	fps:longint;
-	fpss:string;
-    error:integer;
-    effects,drawcomplete:boolean;
+	fpss, scores:string;
+    pause, effects,drawcomplete,bonus:boolean;
     k:char;
 	Driver, Mode, TestDriver, ErrCode: Integer;
 	posx,posy : array[1..100] of integer;
@@ -43,39 +42,45 @@ begin
 	end;
 
 	fillboard;
-	napr:=1;i:=3;j:=3; timer:=0 ;effects:=true; drawcomplete:=false;
+	napr:=1;i:=3;j:=3; timer:=0 ;effects:=true; drawcomplete:=false; bonus:=false;
         posx[1]:=7;posx[2]:=6;posx[3]:=5;posx[4]:=4;posx[5]:=3;
         posy[1]:=5;posy[2]:=5;posy[3]:=5;posy[4]:=5;posy[5]:=5;
-        length:=5;
+        length:=3;
+	for i:=1 to length do 
+		drawsegment(posx[i],posy[i]);
+	
 	repeat
 		if timer>=4 then begin
 			timer:=0;
-			str(fps,fpss);
+			str(fps,fpss);str(length-3,scores);
 			bar(0,192,320,200);
-			OutTextXY(5,192,'fps='+fpss);
+			OutTextXY(5,192,'Score: '+scores);
+			OutTextXY(85,192,'fps='+fpss);
+			if pause then OutTextXY(165,192,'pause');
 			fps:=0;
 			drawcomplete:=false;
 		end;
 
 		fps:=fps+1;
 
-		if (keypressed) and (napr2=0) then
+		if (keypressed) then
 		begin
 			k:=readkey;
-			if k=#77 then napr2:=1
-			else if k=#80 then napr2:=2
-			else if k=#75 then napr2:=3
-			else if k=#72 then napr2:=4
-			else if k='e' then effects:=not effects;
+			if (k=#77) and (napr<>3)and (napr2=0) then napr2:=1
+			else if (k=#80) and (napr<>4)and (napr2=0) then napr2:=2
+			else if (k=#75) and (napr<>1)and (napr2=0) then napr2:=3
+			else if (k=#72) and (napr<>2)and (napr2=0) then napr2:=4
+			else if k='e' then effects:=not effects
+			else if k='p' then pause:=not pause;
 		end;
 
-		if not drawcomplete then begin
+		if (not drawcomplete)and (not pause) then begin
 			if (napr2>0) then begin
 				napr:=napr2;
 				napr2:=0;
 			end;
 			
-			{length:=length+1;}
+			if (posx[1]=bonusx) and (posy[1]=bonusy) then begin length:=length+1; bonus:=false; end;
 			boardsegment(posx[length],posy[length]);
 			
 			for i:=length downto 2 do begin
@@ -99,6 +104,7 @@ begin
 				posy[1]:=posy[1]-1;
 			end;
 			
+			
 			{fillboard;
 			for i:=1 to length do begin}
 			drawsegment(posx[1],posy[1]);
@@ -109,10 +115,11 @@ begin
 				i:=random(20);
 				j:=random(12);
 			end}
-			if timer=random(18) then begin
-				ib:=random(20);
-				jb:=random(12);
-				drawbonus(ib,jb);
+			if not bonus then begin
+				bonusx:=random(20);
+				bonusy:=random(12);
+				drawbonus(bonusx,bonusy);
+				bonus:=true;
 			end;
 
 			drawcomplete:=true;

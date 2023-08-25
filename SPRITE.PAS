@@ -5,10 +5,11 @@ Interface
 	procedure drawbonus(var x,y:integer);
 	procedure boardsegment(var x,y:integer);
 	procedure drawsegment(var x,y:integer);
+	procedure pain;
 
 {---------------------------------}
 Implementation
-              uses graph;
+    uses graph,crt;
 	procedure fillboard;
 	var wi,wj:integer;
 	begin
@@ -103,5 +104,24 @@ Implementation
 			setfillstyle(1,18);
 			bar(sx+5,sy+5,sx+10,sy+10);
 
+	end;
+	
+	procedure pain;
+	begin
+	  Sound(494);  Delay(200);  NoSound;
+	  NoSound;   Delay(200);  Sound(740);  Delay(200);  NoSound;
+	  Sound(494);  Delay(200);  NoSound;
+	  Sound(784);  Delay(200);  NoSound;
+	  NoSound;   Delay(200);  Sound(740);  Delay(200);  NoSound;
+	  Sound(659);  Delay(200);  NoSound;
+	  Sound(740);  Delay(200);  NoSound;
+	  NoSound;   Delay(200);  Sound(659);  Delay(200);  NoSound;
+	  Sound(740);  Delay(200);  NoSound;
+	  Sound(784);  Delay(200);  NoSound;
+	  Sound(784);  Delay(200);  NoSound;
+	  Sound(740);  Delay(200);  NoSound;
+	  Sound(659);  Delay(200);  NoSound;
+	  Sound(494);  Delay(200);  NoSound;
+	  NoSound;
 	end;
 end.

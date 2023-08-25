@@ -47,7 +47,8 @@ end;
 procedure start;
 begin
 	fillboard;
-	napr:=1;napr2:=1;i:=3;j:=3; timer:=0 ;effects:=true; drawcomplete:=false; bonus:=false; pause:=false;
+	setfillstyle(1,141);bar(0,192,320,200);setcolor(15);OutTextXY(30,192,'Get ready!');
+	napr:=1;napr2:=1;i:=3;j:=3; effects:=true; drawcomplete:=false; bonus:=false; pause:=false;
     posx[1]:=7;posx[2]:=6;posx[3]:=5;posx[4]:=4;posx[5]:=3;
     posy[1]:=5;posy[2]:=5;posy[3]:=5;posy[4]:=5;posy[5]:=5;
 	nextx:=posx[1];nexty:=posy[1];
@@ -56,7 +57,19 @@ begin
 		drawsegment(posx[i],posy[i]);
 	
 	pain;
+	setfillstyle(1,141);bar(0,192,320,200);setcolor(14);OutTextXY(30,192,'Go!'); timer:=0 ;repeat until(timer=4);
 	while KeyPressed do k:=ReadKey;
+end;
+
+procedure bang;
+begin
+	fillboard;
+	for i:=1 to length do begin
+		posx[i]:=random(20);
+		posy[i]:=random(12);
+		drawsegment(posx[i],posy[i]);
+	end;
+	mes:='Bang!'; pause:=true; gameover:=true;
 end;
 
 
@@ -85,7 +98,8 @@ begin
 		if timer>=speed then begin
 			timer:=0;
 			str(napr,fpss);str(length-3,scores);
-			bar(0,192,320,200);
+			setfillstyle(1,141);bar(0,192,320,200);
+			setcolor(15);
 			OutTextXY(5,192,'Score: '+scores);
 			OutTextXY(85,192,'fps='+fpss);
 			if wallwalk then OutTextXY(310,192,'w');
@@ -109,6 +123,7 @@ begin
 			else if k='g' then godmode:=godmode +1
 			else if (k='p')and (gameover) then begin pause:=not pause;start; end
 			else if k='p' then pause:=not pause
+			else if k='b' then bang
 			else if k='n' then start
 			else if (k='s') and (speed>1) then speed:=speed-1
 			else if k='c' then begin cheaton; cheat:=true; bonusx:=-1; bonus:=true;end;
@@ -148,8 +163,6 @@ begin
 				end;
 
 				drawsegment(posx[1],posy[1]);
-				
-
 
 				if cheat then length:=length+1;
 				if length=240 then begin mes:='you win!'; pause:=true; gameover:=true;end;
@@ -161,8 +174,7 @@ begin
 						bonus:=true;
 					if bonus then drawbonus(bonusx,bonusy);
 				until(bonus);
-				
-				
+							
 			end
 			else if (godmode=0) then begin mes:='Game over!'; pause:=true; gameover:=true;end
 			else if (godmode=1) then begin nextx:=posx[1]; nexty:=posy[1]; end

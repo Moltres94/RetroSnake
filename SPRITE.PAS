@@ -5,17 +5,26 @@ Interface
 	procedure drawbonus(var x,y:integer);
 	procedure boardsegment(var x,y:integer);
 	procedure drawsegment(var x,y:integer);
+	procedure colorshift(x:integer);
 	procedure pain;
 
 {---------------------------------}
 Implementation
     uses graph,crt;
+	var color:integer;
+		colors:array[1..10] of integer;
+		
+	procedure colorshift;
+	begin
+		color:=x;
+	end;
+	
 	procedure fillboard;
 	var wi,wj:integer;
 	begin
-			setfillstyle(1,216);
+			setfillstyle(1,216+color);
 			bar(0,0,320,191);
-			setfillstyle(1,214);
+			setfillstyle(1,214+color);
 			wi:=0;
 			wj:=0;
 			repeat
@@ -79,8 +88,8 @@ Implementation
 	begin
 			sx:=x*16;
 			sy:=y*16;
-			if (x+y)mod 2 =0 then setfillstyle(1,214)
-			else setfillstyle(1,216);
+			if (x+y)mod 2 =0 then setfillstyle(1,214+color)
+			else setfillstyle(1,216+color);
 			bar(sx,sy,sx+15,sy+15);
 	end;
 
@@ -91,15 +100,15 @@ Implementation
 			sy:=y*16;
 			setfillstyle(1,18);
 			bar(sx,sy,sx+15,sy+15);
-			setfillstyle(1,141);
+			setfillstyle(1,141+color);
 			bar(sx+2,sy+2,sx+13,sy+13);
 			{if effects then begin  }
-			   setfillstyle(1,71);
+			   setfillstyle(1,71+color);
 			   bar(sx+2,sy+2,sx+7,sy+9);
 			   setfillstyle(1,15);
 			   bar(sx+2,sy+2,sx+4,sy+4);
 			{end; }
-			setfillstyle(1,215);
+			setfillstyle(1,215+color);
 			bar(sx+4,sy+4,sx+11,sy+11);
 			setfillstyle(1,18);
 			bar(sx+5,sy+5,sx+10,sy+10);
@@ -124,4 +133,7 @@ Implementation
 	  Sound(494);  Delay(200);  NoSound;
 	  NoSound;
 	end;
-end.
+begin
+   colors[1]:=216;
+   colors[2]:=214;
+end .

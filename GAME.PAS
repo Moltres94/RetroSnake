@@ -2,15 +2,15 @@ program game;
 uses crt,graph,windos,sprite;
 var SvInt1C: procedure;
 	gd,gm:integer;
-    i,j,bonusx,bonusy,napr,napr2,timer,speed:integer;
-	fps:longint;
+    i,j,bonusx,bonusy,napr,napr2,timer,speed,color:integer;
 	fpss, scores, mes:string;
-    pause, gameover, effects,drawcomplete,bonus,cheat,wallwalk,beep:boolean;
+    pause, gameover, effects,drawcomplete,bonus,cheat,wallwalk:boolean;
+	needdraw,music:boolean;
     k:char;
 	Driver, Mode, TestDriver, ErrCode: Integer;
 	posx,posy : array[1..240] of integer;
-	length, nextx, nexty, godmode:integer;
-
+	length, best,nextx, nexty, godmode,beep:integer;
+	
 {$F+}
 function TestDetect: Integer;
 begin
@@ -21,7 +21,7 @@ end;
 procedure NewInt1C; interrupt; {ÝáÖ¤¨¦çá  Öåá ¢ åñë ¨å 18.2 á ó ë ã¨ÆçÔ¦ç}
 begin
 	timer:=timer+1;
-	if beep then begin beep:=false;NoSound;end;
+	if beep>0 then begin beep:=beep-1;if beep=0 then NoSound;end;
 end;
 
 procedure cheaton;
@@ -44,22 +44,48 @@ begin
 	collision:=result;
 end;
 
+procedure drawstatus;
+begin
+			str(best,fpss);str(length-3,scores);
+			setfillstyle(1,141+color);bar(0,192,320,200);
+			setcolor(15);
+			OutTextXY(5,192,'Score: '+scores);
+			OutTextXY(85,192,'Best:'+fpss);
+			if music then OutTextXY(298,192,'m');
+			if wallwalk then OutTextXY(312,192,'w');
+			if godmode=1 then OutTextXY(305,192,'g');if godmode=2 then OutTextXY(305,192,'G');
+			if pause then OutTextXY(165,192,mes);
+			needdraw:=false;
+end;
+
 procedure start;
 begin
+	NoSound;
+	if (length-3)>best then begin 
+		best:=length-3;
+		if best>=20 then color:=random(24);
+	end;
+	colorshift(color);
 	fillboard;
-	setfillstyle(1,141);bar(0,192,320,200);setcolor(15);OutTextXY(30,192,'Get ready!');
-	napr:=1;napr2:=1;i:=3;j:=3; effects:=true; drawcomplete:=false; bonus:=false; pause:=false;
-    posx[1]:=7;posx[2]:=6;posx[3]:=5;posx[4]:=4;posx[5]:=3;
-    posy[1]:=5;posy[2]:=5;posy[3]:=5;posy[4]:=5;posy[5]:=5;
+	setfillstyle(1,141+color);bar(0,192,320,200);setcolor(15);OutTextXY(30,192,'Get ready!');needdraw:=true;
+	napr:=1;napr2:=1;i:=3;j:=3; effects:=true; drawcomplete:=false; bonus:=false; pause:=false; 
+    posx[1]:=7;posx[2]:=6;posx[3]:=5;
+    posy[1]:=5;posy[2]:=5;posy[3]:=5;
 	nextx:=posx[1];nexty:=posy[1];
-    length:=3;mes:='pause';gameover:=false; cheat:=false;speed:=4;wallwalk:=false;godmode:=0;
+    length:=3;mes:='pause';gameover:=false; cheat:=false;speed:=4;godmode:=0;
 	for i:=length downto 1 do
 		drawsegment(posx[i],posy[i]);
-	
-	pain;
-	setfillstyle(1,141);bar(0,192,320,200);setcolor(14);OutTextXY(30,192,'Go!'); timer:=0 ;repeat until(timer=4);
+	if music then pain;
+	setfillstyle(1,141+color);bar(0,192,320,200);setcolor(14);OutTextXY(30,192,'Go!');
+	needdraw:=true; timer:=0 ;repeat until(timer=4);
 	while KeyPressed do k:=ReadKey;
 end;
+
+procedure gameoverp;
+begin
+	pause:=true; gameover:=true;needdraw:=true;Sound(100);beep:=9;
+end;
+
 
 procedure bang;
 begin
@@ -69,7 +95,7 @@ begin
 		posy[i]:=random(12);
 		drawsegment(posx[i],posy[i]);
 	end;
-	mes:='Bang!'; pause:=true; gameover:=true;
+	mes:='Bang!'; pause:=true; gameoverp;needdraw:=true;
 end;
 
 
@@ -91,25 +117,16 @@ begin
 		Halt(1);
 	end;
 
+	music:=true;
 	start;
 
 	Randomize;
 	repeat
 		if timer>=speed then begin
 			timer:=0;
-			str(napr,fpss);str(length-3,scores);
-			setfillstyle(1,141);bar(0,192,320,200);
-			setcolor(15);
-			OutTextXY(5,192,'Score: '+scores);
-			OutTextXY(85,192,'fps='+fpss);
-			if wallwalk then OutTextXY(310,192,'w');
-			if godmode=1 then OutTextXY(305,192,'g');if godmode=2 then OutTextXY(305,192,'G');
-			if pause then OutTextXY(165,192,mes);
-			fps:=0;
+			if (needdraw) then drawstatus;
 			drawcomplete:=false;
 		end;
-
-		fps:=fps+1;
 
 		if (keypressed) then
 		begin
@@ -119,12 +136,14 @@ begin
 			else if (k=#75) and (napr<>1)and (napr2=0) then napr2:=3
 			else if (k=#72) and (napr<>2)and (napr2=0) then napr2:=4
 			else if k='e' then effects:=not effects
-			else if k='w' then wallwalk:=not wallwalk
-			else if k='g' then godmode:=godmode +1
-			else if (k='p')and (gameover) then begin pause:=not pause;start; end
-			else if k='p' then pause:=not pause
+			else if k='w' then  begin wallwalk:=not wallwalk; needdraw:=true; end
+			else if k='g' then  begin godmode:=godmode +1; needdraw:=true; end
+			else if k='m' then  begin music:=not music; needdraw:=true; end
+			else if ((k='p') or (k=#13)) and (gameover) then begin pause:=not pause;start; end
+			else if (k='p') or (k=#13) then pause:=not pause
 			else if k='b' then bang
 			else if k='n' then start
+			{else if k='x' then 	color:=random(24)}
 			else if (k='s') and (speed>1) then speed:=speed-1
 			else if k='c' then begin cheaton; cheat:=true; bonusx:=-1; bonus:=true;end;
 		end;
@@ -153,7 +172,8 @@ begin
 				posx[1]:=nextx;
 				posy[1]:=nexty;
 				
-				if (posx[1]=bonusx) and (posy[1]=bonusy) then begin length:=length+1; bonus:=false; Sound(1568);beep:=true;end;
+				if (posx[1]=bonusx) and (posy[1]=bonusy) then 
+					begin length:=length+1; needdraw:=true; bonus:=false; Sound(1568);beep:=1;end;
 
 				if wallwalk then begin
 					if (posx[1]>20) then posx[1]:=0
@@ -164,8 +184,8 @@ begin
 
 				drawsegment(posx[1],posy[1]);
 
-				if cheat then length:=length+1;
-				if length=240 then begin mes:='you win!'; pause:=true; gameover:=true;end;
+				if cheat then begin length:=length+1; needdraw:=true;Sound(1568);beep:=1;end;
+				if length>=240 then begin mes:='you win!'; gameoverp; end;
 
 				if not bonus then repeat
 					bonusx:=random(20);
@@ -176,7 +196,7 @@ begin
 				until(bonus);
 							
 			end
-			else if (godmode=0) then begin mes:='Game over!'; pause:=true; gameover:=true;end
+			else if (godmode=0) then begin mes:='Game over!';gameoverp; end
 			else if (godmode=1) then begin nextx:=posx[1]; nexty:=posy[1]; end
 			else begin
 				
@@ -197,10 +217,10 @@ begin
 				if (posy[2]>posy[1]) then napr:=4;
 			end;
 	
-	
 			drawcomplete:=true;
 		end;
 	until k=#27;
+	NoSound;
 	SetIntVec($1C,@SvInt1C);
 	closegraph
 end.

@@ -5,7 +5,7 @@ var SvInt1C: procedure;
     i,j,bonusx,bonusy,napr,napr2,timer,speed,color:integer;
 	fpss, scores, mes:string;
     pause, gameover, effects,drawcomplete,bonus,cheat,wallwalk:boolean;
-	needdraw,music:boolean;
+	needdraw,needclear,music:boolean;
     k:char;
 	Driver, Mode, TestDriver, ErrCode: Integer;
 	posx,posy : array[1..240] of integer;
@@ -71,7 +71,7 @@ begin
 	napr:=1;napr2:=1;i:=3;j:=3; effects:=true; drawcomplete:=false; bonus:=false; pause:=false; 
     posx[1]:=7;posx[2]:=6;posx[3]:=5;
     posy[1]:=5;posy[2]:=5;posy[3]:=5;
-	nextx:=posx[1];nexty:=posy[1];
+	nextx:=posx[1];nexty:=posy[1];needclear:=true;
     length:=3;mes:='pause';gameover:=false; cheat:=false;speed:=4;godmode:=0;
 	for i:=length downto 1 do
 		drawsegment(posx[i],posy[i]);
@@ -140,7 +140,7 @@ begin
 			else if k='g' then  begin godmode:=godmode +1; needdraw:=true; end
 			else if k='m' then  begin music:=not music; needdraw:=true; end
 			else if ((k='p') or (k=#13)) and (gameover) then begin pause:=not pause;start; end
-			else if (k='p') or (k=#13) then pause:=not pause
+			else if (k='p') or (k=#13) then begin pause:=not pause;needdraw:=true; end
 			else if k='b' then bang
 			else if k='n' then start
 			{else if k='x' then 	color:=random(24)}
@@ -161,9 +161,11 @@ begin
 			else if (napr=4) then nexty:=posy[1]-1;
 			
 			if (not collision(nextx,nexty,4))then begin
-				if (not cheat) then begin
+				if (not cheat)and (needclear) then begin
 					boardsegment(posx[length],posy[length]);
-				end;
+				end;	
+				
+				needclear:=true;
 				
 				for i:=length downto 2 do begin
 					posx[i]:=posx[i-1];
@@ -173,7 +175,7 @@ begin
 				posy[1]:=nexty;
 				
 				if (posx[1]=bonusx) and (posy[1]=bonusy) then 
-					begin length:=length+1; needdraw:=true; bonus:=false; Sound(1568);beep:=1;end;
+					begin length:=length+1; needdraw:=true; needclear:=false; bonus:=false; Sound(1568);beep:=1;end;
 
 				if wallwalk then begin
 					if (posx[1]>20) then posx[1]:=0
@@ -183,6 +185,8 @@ begin
 				end;
 
 				drawsegment(posx[1],posy[1]);
+				
+
 
 				if cheat then begin length:=length+1; needdraw:=true;Sound(1568);beep:=1;end;
 				if length>=240 then begin mes:='you win!'; gameoverp; end;

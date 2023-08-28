@@ -39,11 +39,8 @@ Implementation
 					until wj>=192;
 	end;
 
-	procedure drawbonus;
-	var sx,sy:integer;
+	procedure redberry(sx,sy:integer);
 	begin
-		sx:=x*16;
-		sy:=y*16;
 		setfillstyle(1,110);
 		bar(2+sx,7+sy, 7+sx,13+sy);
 		bar(8+sx,8+sy,13+sx,14+sy);
@@ -82,7 +79,52 @@ Implementation
 		line(8+sx,10+sy,8+sx,12+sy) ;
 		line(9+sx,12+sy,9+sx,13+sy) ;
 	end;
+	
+	procedure banana(sx,sy:integer);
+	begin
+		setcolor(43);
+		line(2+sx,8+sy, 10+sx,8+sy) ;
+		line(5+sx,11+sy, 10+sx,11+sy) ;
+		
+		setcolor(14);
+		line(3+sx,7+sy, 11+sx,7+sy) ;
+		line(5+sx,9+sy, 13+sx,9+sy) ;
+		line(4+sx,10+sy, 12+sx,10+sy) ;
+		line(12+sx,8+sy, 13+sx,8+sy) ;
+		line(10+sx,6+sy, 11+sx,6+sy) ;
+		putpixel(11+sx, 5+sy,14) ;
+		putpixel(13+sx, 7+sy,14) ;
+		
+		setcolor(6);
+		moveto(1+sx,8+sy);
+		lineto(5+sx,12+sy);		lineto(10+sx,12+sy);
+		lineto(11+sx,11+sy);	lineto(12+sx,11+sy);
+		lineto(14+sx,9+sy);		lineto(14+sx,7+sy);
+		lineto(12+sx,5+sy);		lineto(12+sx,7+sy);
+		lineto(10+sx,9+sy);		lineto(6+sx,9+sy);
+		lineto(3+sx,6+sy);		lineto(2+sx,6+sy);
+		lineto(1+sx,7+sy);
+		
+		
+		line(3+sx,9+sy,5+sx,7+sy);		line(5+sx,7+sy,8+sx,7+sy);
+		line(8+sx,7+sy,11+sx,4+sy);		line(11+sx,4+sy,12+sx,4+sy);
+		
+		putpixel(2+sx, 7+sy,184) ;
+		putpixel(4+sx, 9+sy,184) ;
+		putpixel(13+sx, 4+sy,184) ;
+		putpixel(14+sx, 5+sy,184) ;
+	end;
 
+	procedure drawbonus;
+	var sx,sy,z:integer;
+	begin
+		sx:=x*16;
+		sy:=y*16;
+		z:=random(2);
+		if z=1 then banana(sx,sy)
+		else redberry(sx,sy);
+	end;
+	
 	procedure boardsegment;
 	var sx,sy:integer;
 	begin

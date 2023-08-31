@@ -29,7 +29,8 @@ begin
 	for i:=0 to 19 do
 		for j:=0 to 11 do
 			drawbonus(i,j);
-	for i:=1 to length do 
+	drawhead(posx[1],posy[1]);
+	for i:=2 to length do 
 		drawsegment(posx[i],posy[i]);
 end;
 
@@ -73,8 +74,9 @@ begin
     posy[1]:=5;posy[2]:=5;posy[3]:=5;
 	nextx:=posx[1];nexty:=posy[1];needclear:=true;
     length:=3;mes:='pause';gameover:=false; cheat:=false;speed:=4;godmode:=0;
-	for i:=length downto 1 do
+	for i:=length downto 2 do
 		drawsegment(posx[i],posy[i]);
+	drawhead(posx[1],posy[1]);
 	if music then pain;
 	setfillstyle(1,141+color);bar(0,192,320,200);setcolor(14);OutTextXY(30,192,'Go!');
 	needdraw:=true; timer:=0 ;repeat until(timer=4);
@@ -86,18 +88,17 @@ begin
 	pause:=true; gameover:=true;needdraw:=true;Sound(100);beep:=9;
 end;
 
-
 procedure bang;
 begin
 	fillboard;
 	for i:=1 to length do begin
 		posx[i]:=random(20);
 		posy[i]:=random(12);
-		drawsegment(posx[i],posy[i]);
+		if i=1 then drawhead(posx[i],posy[i])
+			else drawsegment(posx[i],posy[i]);
 	end;
 	mes:='Bang!'; pause:=true; gameoverp;needdraw:=true;
 end;
-
 
 begin
 	GetIntVec($1C,@SvInt1C);
@@ -184,10 +185,9 @@ begin
 					else if (posy[1]<0) then posy[1]:=11;
 				end;
 
-				drawsegment(posx[1],posy[1]);
+				drawhead(posx[1],posy[1]);
+				drawsegment(posx[2],posy[2]);
 				
-
-
 				if cheat then begin length:=length+1; needdraw:=true;Sound(1568);beep:=1;end;
 				if length>=240 then begin mes:='you win!'; gameoverp; end;
 

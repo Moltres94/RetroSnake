@@ -5,6 +5,7 @@ Interface
 	procedure drawbonus(var x,y:integer);
 	procedure boardsegment(var x,y:integer);
 	procedure drawsegment(var x,y:integer);
+	procedure drawhead(var x,y:integer);
 	procedure colorshift(x:integer);
 	procedure pain;
 
@@ -20,7 +21,7 @@ Implementation
 	end;
 	
 	procedure fillboard;
-	var wi,wj:integer;
+	var wi,wj,i:integer;
 	begin
 			setfillstyle(1,216+color);
 			bar(0,0,320,191);
@@ -37,6 +38,8 @@ Implementation
 							wj:=wj+16;
 							end;
 					until wj>=192;
+			for i:=0 to 255 do
+				putpixel(i,0,i);
 	end;
 
 	procedure redberry(sx,sy:integer);
@@ -114,14 +117,74 @@ Implementation
 		putpixel(13+sx, 4+sy,184) ;
 		putpixel(14+sx, 5+sy,184) ;
 	end;
+	
+	
+	procedure applehelp(sx,sy:integer);
+	begin
+		moveto(2+sx,9+sy);
+		lineto(4+sx,11+sy);		lineto(5+sx,11+sy);
+		lineto(6+sx,12+sy);	lineto(9+sx,12+sy);
+		lineto(10+sx,11+sy);		lineto(11+sx,11+sy);
+		lineto(13+sx,9+sy);		
+	end;
+	
+	procedure apple(sx,sy:integer);
+	begin
+		setcolor(2);
+		putpixel(2+sx, 1+sy,2) ;putpixel(6+sx, 1+sy,2) ;
+		putpixel(7+sx, 2+sy,2) ;
+		line(3+sx,sy, 5+sx,sy) ;
+		line(3+sx,2+sy, 5+sx,2+sy) ;
+		line(8+sx,1+sy, 8+sx,4+sy) ;
+		setcolor(45);
+		line(3+sx,1+sy, 5+sx,1+sy) ;
+		
+		setfillstyle(1,43);
+		bar(3+sx,5+sy, 12+sx,8+sy);
+		
+		setfillstyle(1,68);
+		bar(4+sx,6+sy, 5+sx,7+sy);
+		putpixel(11+sx, 6+sy,68);
+		
+		setcolor(4);
+		moveto(3+sx,11+sy);
+		lineto(1+sx,9+sy);		lineto(1+sx,6+sy);
+		lineto(3+sx,4+sy);	lineto(6+sx,4+sy);
+		lineto(7+sx,5+sy);		lineto(8+sx,5+sy);
+		lineto(9+sx,4+sy);		lineto(12+sx,4+sy);
+		lineto(14+sx,6+sy);		lineto(14+sx,9+sy);
+		lineto(12+sx,11+sy);	
+		line(3+sx,12+sy, 12+sx,12+sy) ;
+		line(3+sx,13+sy, 12+sx,13+sy) ;
+		line(4+sx,14+sy, 11+sx,14+sy) ;
+		putpixel(2+sx, 11+sy,4) ; putpixel(13+sx, 11+sy,4) ;
+
+		setcolor(112);
+		moveto(1+sx,10+sy);
+		lineto(1+sx,11+sy);		lineto(2+sx,12+sy);
+		lineto(2+sx,13+sy);	lineto(4+sx,15+sy);
+		lineto(6+sx,15+sy);		lineto(7+sx,14+sy);
+		lineto(8+sx,14+sy);		lineto(9+sx,15+sy);
+		lineto(11+sx,15+sy);		lineto(13+sx,13+sy);
+		lineto(13+sx,12+sy);		lineto(14+sx,11+sy);
+		lineto(14+sx,10+sy);
+		
+		setcolor(40);
+		applehelp(sx,sy);
+		applehelp(sx,sy-1);
+		setcolor(42);
+		applehelp(sx,sy-2);
+		applehelp(sx,sy-3);
+	end;
 
 	procedure drawbonus;
 	var sx,sy,z:integer;
 	begin
 		sx:=x*16;
 		sy:=y*16;
-		z:=random(2);
+		z:=random(3);
 		if z=1 then banana(sx,sy)
+		else if z=2 then apple(sx,sy)
 		else redberry(sx,sy);
 	end;
 	
@@ -154,6 +217,35 @@ Implementation
 			bar(sx+4,sy+4,sx+11,sy+11);
 			setfillstyle(1,18);
 			bar(sx+5,sy+5,sx+10,sy+10);
+
+	end;
+	
+	procedure drawhead;
+	var sx,sy:integer;
+	begin
+			sx:=x*16;
+			sy:=y*16;
+
+			setfillstyle(1,141+color);		
+			bar(sx+2,sy+9,sx+13,sy+13);
+
+			setfillstyle(1,15);
+			bar(sx+2,sy+2,sx+13,sy+8);
+			
+			setfillstyle(1,18);
+			bar(sx+5,sy+5,sx+10,sy+8);
+
+			setfillstyle(1,215+color);
+			bar(sx+7,sy+2,sx+8,sy+8);
+			bar(sx+5,sy+9,sx+10,sy+10);		
+
+			setfillstyle(1,18);
+			bar(sx+2,sy,sx+13,sy+1);
+			bar(sx,sy+2,sx+1,sy+10);
+			bar(sx+2,sy+11,sx+4,sy+13);
+			bar(sx+5,sy+14,sx+10,sy+15);
+			bar(sx+11,sy+11,sx+13,sy+13);
+			bar(sx+14,sy+2,sx+15,sy+10);
 
 	end;
 	

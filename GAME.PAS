@@ -9,7 +9,7 @@ var SvInt1C: procedure;
     k:char;
 	Driver, Mode, TestDriver, ErrCode: Integer;
 	posx,posy : array[1..240] of integer;
-	length, best,nextx, nexty, godmode,beep:integer;
+	length, best,nextx, nexty, godmode,beep,mestimer:integer;
 	
 {$F+}
 function TestDetect: Integer;
@@ -22,6 +22,7 @@ procedure NewInt1C; interrupt; {ÝáÖ¤¨¦çá  Öåá ¢ åñë ¨å 18.2 á ó ë ã¨ÆçÔ¦ç}
 begin
 	timer:=timer+1;
 	if beep>0 then begin beep:=beep-1;if beep=0 then NoSound;end;
+	if mestimer>0 then begin mestimer:=mestimer-1;if mestimer=0 then needdraw:=true;end;
 end;
 
 function crypt(a:integer;mode:boolean):integer;
@@ -101,8 +102,8 @@ begin
 			OutTextXY(85,192,'Best:'+fpss);
 			if music then OutTextXY(298,192,'m');
 			if wallwalk then OutTextXY(312,192,'w');
-			if godmode=1 then OutTextXY(305,192,'g');if godmode=2 then OutTextXY(305,192,'G');
 			if pause then OutTextXY(165,192,mes);
+			if mestimer>0 then OutTextXY(165,192,mes);
 			needdraw:=false;
 end;
 
@@ -174,11 +175,12 @@ begin
 	Randomize;
 	repeat
 		if timer>=speed then begin
-			timer:=0;
-			if (needdraw) then drawstatus;
+			timer:=0;	
 			drawcomplete:=false;
 		end;
-
+		
+		if (needdraw) then drawstatus;
+		
 		if (keypressed) then
 		begin
 			k:=readkey;
@@ -188,17 +190,19 @@ begin
 			else if (k=#72) and (napr<>2)and (napr2=0) then napr2:=4
 			else if k='e' then effects:=not effects
 			else if k='w' then  begin wallwalk:=not wallwalk; needdraw:=true; end
-			else if k='g' then  begin godmode:=godmode +1; needdraw:=true; end
+			else if (k='g')and (not pause) then  begin 
+					godmode:=godmode +1; if godmode>2 then godmode:=0; mestimer:=4; str(godmode,mes);mes:='godmode: '+mes; needdraw:=true; 
+				end
 			else if k='m' then  begin music:=not music; needdraw:=true; end
 			else if ((k='p') or (k=#13)) and (gameover) then begin pause:=not pause;start; end
-			else if (k='p') or (k=#13) then begin pause:=not pause;needdraw:=true; end
+			else if (k='p') or (k=#13) then begin mes:='pause';pause:=not pause;needdraw:=true; end
 			else if k='b' then bang
 			else if k='n' then start
 			{else if k='x' then 	color:=random(24)}
 			else if (k='s') and (speed>1) then speed:=speed-1
 			else if k='c' then begin cheaton; cheat:=true; bonusx:=-1; bonus:=true;end;
 		end;
-		if godmode>2 then godmode:=0;
+		
 
 		if (not drawcomplete)and (not pause) then begin
 			if (napr2>0) then begin

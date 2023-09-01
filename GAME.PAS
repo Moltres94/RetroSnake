@@ -5,7 +5,7 @@ var SvInt1C: procedure;
     i,j,bonusx,bonusy,napr,napr2,timer,speed,color:integer;
 	fpss, scores, mes:string;
     pause, gameover, effects,drawcomplete,bonus,cheat,wallwalk:boolean;
-	needdraw,needclear,music:boolean;
+	needdraw,needclear,music, nextcolor:boolean;
     k:char;
 	Driver, Mode, TestDriver, ErrCode: Integer;
 	posx,posy : array[1..240] of integer;
@@ -22,6 +22,53 @@ procedure NewInt1C; interrupt; {ÝáÖ¤¨¦çá  Öåá ¢ åñë ¨å 18.2 á ó ë ã¨ÆçÔ¦ç}
 begin
 	timer:=timer+1;
 	if beep>0 then begin beep:=beep-1;if beep=0 then NoSound;end;
+end;
+
+function crypt(a:integer;mode:boolean):integer;
+const
+secret:array[1..5] of byte = (9,3,6,7,1);
+var b,c,len,r:integer; f:text;
+begin
+	if (mode) then begin if a>281 then a:=281; a:=a*71; end
+	else begin {if not mode}
+		assign(f,'score.ini');
+		reset(f);
+		read(f,a);
+		close(f);
+	end;
+	
+	len:=1;	b:=1;	r:=0;
+	if a>9999 then len:=5
+	else if a>999 then len:=4
+	else if a>99 then len:=3
+	else if a>9 then len:=2;
+	
+	for i:=1 to len do
+	begin
+		 if (mode) then begin
+			c:=(a div b mod 10)+secret[i];
+			if c>9 then c:=c-10;
+		end
+		else begin 
+			c:=(a div b mod 10)-secret[i];
+			if c<0 then c:=c+10;
+		end;	 
+		r:=r+(c*b);
+		b:=b*10;
+	end;
+
+	if (mode) then begin
+		assign(f,'score.ini');
+		rewrite(f);
+		writeln(f,r);
+		close(f);
+	end
+	else begin {not mode}
+		if a =0 then begin crypt:=0; exit; end;
+		if (r mod 71) <>0 then begin crypt:=-2; exit; end;
+		r:=r div 71;		
+	end;
+	crypt:=r;
 end;
 
 procedure cheaton;
@@ -62,10 +109,7 @@ end;
 procedure start;
 begin
 	NoSound;
-	if (length-3)>best then begin 
-		best:=length-3;
-		if best>=20 then color:=random(24);
-	end;
+	if nextcolor then color:=random(24);
 	colorshift(color);
 	fillboard;
 	setfillstyle(1,141+color);bar(0,192,320,200);setcolor(15);OutTextXY(30,192,'Get ready!');needdraw:=true;
@@ -85,6 +129,11 @@ end;
 
 procedure gameoverp;
 begin
+	if (length-3)>best then begin 
+		best:=length-3;
+		crypt(best,true);
+		if best>=20 then nextcolor:=true;
+	end;
 	pause:=true; gameover:=true;needdraw:=true;Sound(100);beep:=9;
 end;
 
@@ -118,6 +167,7 @@ begin
 		Halt(1);
 	end;
 
+	best:=crypt(0,false);
 	music:=true;
 	start;
 

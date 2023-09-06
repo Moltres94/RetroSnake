@@ -6,9 +6,12 @@ var SvInt1C: procedure;
 	fpss, scores, mes, bonuss:string;
     pause, gameover, effects,drawcomplete,bonus,cheat,wallwalk:boolean;
 	needdraw,needclear,music, nextcolor,needbonus,exi:boolean;
+	thin,debug:boolean;
     k:char;
 	Driver, Mode, TestDriver, ErrCode: Integer;
 	posx,posy : array[1..240] of integer;
+	segm:array[1..240] of byte;
+	nextsegment:byte;
 	length, best,nextx, nexty, godmode,beep,mestimer:integer;
 	
 {$F+}
@@ -82,7 +85,7 @@ begin
 			drawbonus(i,j,0);
 	drawhead(posx[1],posy[1],2);
 	for i:=2 to length do 
-		drawsegment(posx[i],posy[i]);
+		drawsegment(posx[i],posy[i],segm[i],debug);
 end;
 
 function collision(x,y,startpos,endpos:integer):boolean;
@@ -111,6 +114,18 @@ begin
 			if wallwalk then OutTextXY(312,192,'w');
 			if pause then OutTextXY(165,192,mes);
 			if mestimer>0 then OutTextXY(165,192,mes);
+			
+			if (pause)and(debug) then begin bar(164,8,220,9*length+8);
+			for i:=1 to length do begin
+				mes:='';
+				str(posx[i],fpss);
+				mes:=mes+fpss+' ';
+				str(posy[i],fpss);
+				mes:=mes+fpss+' ';
+				str(segm[i],fpss);
+				mes:=mes+fpss;
+				OutTextXY(165,i*9,mes);
+			end;end;
 			needdraw:=false;
 end;
 
@@ -124,10 +139,13 @@ begin
 	napr:=1;napr2:=1;i:=3;j:=3; effects:=true; drawcomplete:=false; bonus:=false; bonus2type:=0;bonusy2:=-2;pause:=false; 
     posx[1]:=7;posx[2]:=6;posx[3]:=5;
     posy[1]:=5;posy[2]:=5;posy[3]:=5;
+	if thin then begin
+		segm[1]:=1;segm[2]:=1;segm[3]:=1;
+	end;
 	nextx:=posx[1];nexty:=posy[1];needclear:=true;needbonus:=false;
     length:=3;mes:='pause';gameover:=false; cheat:=false;speed:=4;godmode:=0;mestimer:=0;
 	for i:=length downto 2 do
-		drawsegment(posx[i],posy[i]);
+		drawsegment(posx[i],posy[i],segm[i],debug);
 	drawhead(posx[1],posy[1],0);
 	if music then pain;
 	setfillstyle(1,141+color);bar(0,192,320,200);setcolor(14);OutTextXY(30,192,'Go!');
@@ -152,7 +170,7 @@ begin
 		posx[i]:=random(20);
 		posy[i]:=random(12);
 		if i=1 then drawhead(posx[i],posy[i],5)
-			else drawsegment(posx[i],posy[i]);
+			else drawsegment(posx[i],posy[i],segm[i],debug);
 	end;
 	mes:='Bang!'; pause:=true; gameoverp;needdraw:=true;
 end;
@@ -176,7 +194,7 @@ begin
 	end;
 
 	best:=crypt(0,false);
-	music:=true;
+	music:=true;debug:=false;
 	start;
 
 	Randomize;
@@ -198,6 +216,8 @@ begin
 			else if ((k=#27)or (k='y')) and (pause) then begin mes:='Bye!';gameoverp; needdraw:=true;exi:=true; end
 			else if (k=#27)  then begin mes:='Exit to DOS?'; pause:=true; needdraw:=true; end
 			else if k='e' then effects:=not effects
+			else if k='d' then debug:=not debug
+			else if k='t' then thin:=not thin
 			else if k='w' then  begin wallwalk:=not wallwalk; needdraw:=true; end
 			else if (k='g')and (not pause) then  begin 
 					godmode:=godmode +1; if godmode>3 then godmode:=0; mestimer:=4; str(godmode,mes);mes:='godmode: '+mes; needdraw:=true; 
@@ -218,7 +238,9 @@ begin
 				napr:=napr2;
 				napr2:=0;
 			end;
-
+			
+			{if (napr=1) or (napr=3) then nextsegment:=1
+				else nextsegment:=2;}
 			if 	(napr=1) then nextx:=posx[1]+1
 			else if (napr=2) then nexty:=posy[1]+1
 			else if (napr=3) then nextx:=posx[1]-1
@@ -236,9 +258,26 @@ begin
 				for i:=length downto 2 do begin
 					posx[i]:=posx[i-1];
 					posy[i]:=posy[i-1];
+					segm[i]:=segm[i-1];
 				end;
 				posx[1]:=nextx;
 				posy[1]:=nexty;
+				segm[2]:=0;
+				if thin then begin
+					if posx[1]=posx[3] then segm[2]:=2
+					else if posy[1]=posy[3] then segm[2]:=1
+					else if (posx[3]-posx[1]=1)  and (posy[3]-posy[1]=-1) and (posx[2]=posx[1]) then segm[2]:=4
+					else if (posx[3]-posx[1]=-1) and (posy[3]-posy[1]=1)  and (posx[2]=posx[3]) then segm[2]:=4
+					
+					else if (posx[3]-posx[1]=1)  and (posy[3]-posy[1]= 1) and (posx[2]=posx[3]) then segm[2]:=6
+					else if (posx[3]-posx[1]=-1) and (posy[3]-posy[1]=-1) and (posx[2]=posx[1]) then segm[2]:=6
+					
+					else if (posx[3]-posx[1]=1)  and (posy[3]-posy[1]=-1) {and (posx[2]=posx[3])} then segm[2]:=3
+					else if (posx[3]-posx[1]=-1) and (posy[3]-posy[1]=1)  {and (posx[2]=posx[1])} then segm[2]:=3
+					
+					else if (posx[3]-posx[1]=1)  {and (posy[3]-posy[1]= 1) =and (posx[2]=posx[1])} then segm[2]:=5
+					else if (posx[3]-posx[1]=-1) {and (posy[3]-posy[1]=-1) and (posx[2]=posx[3])} then segm[2]:=5;
+				end;
 				
 				if (posx[1]=bonusx) and (posy[1]=bonusy) then 
 				begin 
@@ -258,7 +297,7 @@ begin
 				end;
 
 				drawhead(posx[1],posy[1],godmode);
-				drawsegment(posx[2],posy[2]);
+				drawsegment(posx[2],posy[2],segm[2],debug);
 				
 				if cheat then begin length:=length+1; needdraw:=true;Sound(1568);beep:=1;end;
 				if length>=240 then begin mes:='you win!'; gameoverp; end;

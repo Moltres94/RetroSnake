@@ -4,7 +4,7 @@ Interface
 	procedure fillboard;
 	procedure drawbonus(var x,y:integer; bonus2type:integer);
 	procedure boardsegment(var x,y:integer);
-	procedure drawsegment(var x,y:integer);
+	procedure drawsegment(var x,y:integer; variant:integer;debug:boolean);
 	procedure drawhead(var x,y:integer; eyecolor:integer);
 	procedure colorshift(x:integer);
 	procedure pain;
@@ -223,15 +223,15 @@ Implementation
 	begin
 		sx:=x*16;
 		sy:=y*16;
-		if bonus2type=0 then begin
-			z:=random(2);
-			if z=1 then banana(sx,sy)
-			else redberry(sx,sy);
-		end
-		else if bonus2type=1 then apple(sx,sy,false)
-		else if bonus2type=2 then grape(sx,sy)
-		else if bonus2type=3 then apple(sx,sy,true)
-		
+		case bonus2type of
+				  0:begin	z:=random(2);
+							if z=1 then banana(sx,sy)
+								else redberry(sx,sy);
+					end;
+				  1:apple(sx,sy,false);
+				  2:grape(sx,sy);
+				  3:apple(sx,sy,true);
+		end;
 	end;
 	
 	procedure boardsegment;
@@ -244,26 +244,91 @@ Implementation
 			bar(sx,sy,sx+15,sy+15);
 	end;
 
-	procedure drawsegment;
-	var sx,sy:integer;
-	begin
+	procedure rotatebar(sx,sy,x1,y1,x2,y2,r:integer);
+	var s:string;
+	begin	
+		setfillstyle(1,9);	
+		if r=0 then {rotatex=x;rotatey=y;}
+			bar(sx+x1,sy+y1,sx+x2,sy+y2);
+		if r=2 then {rotatex=15-y;rotatey=x;}
+			bar(sx+15-y2,sy+x2,sx+15-y1,sy+x1);
+		if r=1 then {rotatex=15-x;rotatey=15-y;}
+			bar(sx+15-x1,sy+15-y1,sx+15-x2,sy+15-y2);
+		if r=3 then {rotatex=y;rotatey=15-x;}
+			bar(sx+y1,sy+15-x1,sx+y2,sy+15-x2);
+		setcolor(15);
+		str(r,s);
+		OutTextXY(sx+5,sy+5,s);
+	end;
+	procedure rotateline(sx,sy,x1,y1,x2,y2,r:integer);
+	begin	
+		setcolor(9);
+		if r=0 then {rotatex=x;rotatey=y;}
+			line(sx+x1,sy+y1,sx+x2,sy+y2);
+		if r=1 then {rotatex=15-y;rotatey=x;}
+			line(sx+15-y1,sy+x1,sx+15-y2,sy+x2);
+		if r=2 then {rotatex=15-x;rotatey=15-y;}
+			line(sx+15-x1,sy+15-y1,sx+15-x2,sy+15-y2);
+		if r=3 then {rotatex=y;rotatey=15-x;}
+			line(sx+y1,sy+15-x1,sx+y2,sy+15-x2);		
+	end;
+	
+	procedure drawsegment2(var x,y:integer; variant:integer);
+	var sx,sy,h1,h2,v1,v2:integer;
+	begin		
 			sx:=x*16;
 			sy:=y*16;
-			setfillstyle(1,18);
-			bar(sx,sy,sx+15,sy+15);
-			setfillstyle(1,141+color);
-			bar(sx+2,sy+2,sx+13,sy+13);
-			{if effects then begin  }
-			   setfillstyle(1,71+color);
-			   bar(sx+2,sy+2,sx+7,sy+9);
-			   setfillstyle(1,15);
-			   bar(sx+2,sy+2,sx+4,sy+4);
-			{end; }
-			setfillstyle(1,215+color);
-			bar(sx+4,sy+4,sx+11,sy+11);
-			setfillstyle(1,18);
-			bar(sx+5,sy+5,sx+10,sy+10);
+			boardsegment(x,y);
+			setfillstyle(1,9);setcolor(9);
+			if variant=1 then bar(sx,sy+2,sx+15,sy+13);
+			if variant=2 then bar(sx+2,sy,sx+13,sy+15);
+			if variant>2 then begin
+				rotatebar(sx,sy,2,2,15,13,variant-3);
+				rotatebar(sx,sy,2,14,13,15,variant-3);
+				{rotatebar(sx,sy,7,7,15,12,variant-3);
+				rotatebar(sx,sy,3,13,12,15,variant-3);
+				rotateline(sx,sy,7,3,15,3,variant-3) ;
+				rotateline(sx,sy,6,4,15,4,variant-3) ;
+				rotateline(sx,sy,5,5,15,5,variant-3) ;
+				rotateline(sx,sy,4,6,15,6,variant-3) ;}
+				{putpixel( 13+sx,13+sy,9)  ;}
+			end;
 
+	end;
+	
+	procedure drawsegment;
+	var sx,sy,h1,h2,v1,v2:integer;
+	begin		
+			if (debug)and(variant<>0) then drawsegment2(x,y,variant) else 
+			begin
+				sx:=x*16;
+				sy:=y*16;
+				v1:=0;v2:=0;  h1:=0;h2:=0;
+				if variant<>0 then begin boardsegment(x,y);
+					case variant of
+					  1:begin v1:=1;v2:=1; end;
+					  2:begin h1:=1;h2:=1; end;
+					  3:begin v2:=1;h2:=1; end;
+					  4:begin v1:=1;h1:=1; end;
+					  5:begin v2:=1;h1:=1; end;
+					  6:begin h2:=1;v1:=1; end;
+					end;
+				end;
+				setfillstyle(1,18);
+				bar(sx+h1,sy+v1,sx+15-h2,sy+15-v2);
+				setfillstyle(1,141+color);
+				bar(sx+2,sy+2,sx+13,sy+13);
+				{if effects then begin  }
+				   setfillstyle(1,71+color);
+				   bar(sx+2,sy+2,sx+7,sy+9);
+				   setfillstyle(1,15);
+				   bar(sx+2,sy+2,sx+4,sy+4);
+				{end; }
+				setfillstyle(1,215+color);
+				bar(sx+4,sy+4,sx+11,sy+11);
+				setfillstyle(1,18);
+				bar(sx+5,sy+5,sx+10,sy+10);
+			end;
 	end;
 	
 	procedure drawhead;
@@ -275,10 +340,13 @@ Implementation
 			setfillstyle(1,141+color);		
 			bar(sx+2,sy+9,sx+13,sy+13);
 
-			if eyecolor=1 then setfillstyle(1,11)
-			else if eyecolor=2 then setfillstyle(1,10)
-			else if eyecolor=3 then setfillstyle(1,14)
-			else setfillstyle(1,15);
+			case eyecolor of
+				  1:setfillstyle(1,11);
+				  2:setfillstyle(1,10);
+				  3:setfillstyle(1,14)
+				else setfillstyle(1,15);
+			end;
+			
 			bar(sx+2,sy+2,sx+13,sy+8);
 			
 			setfillstyle(1,18);

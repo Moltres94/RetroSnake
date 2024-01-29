@@ -5,7 +5,7 @@ Interface
 	procedure drawbonus(var x,y:integer; bonus2type:integer);
 	procedure boardsegment(var x,y:integer);
 	procedure drawsegment(var x,y:integer; variant:integer;debug:boolean);
-	procedure drawhead(var x,y:integer; eyecolor:integer);
+	procedure drawhead(var x,y:integer; eyecolor:integer; variant:integer;debug:boolean);
 	procedure colorshift(x:integer);
 	procedure pain;
 
@@ -245,24 +245,21 @@ Implementation
 	end;
 
 	procedure rotatebar(sx,sy,x1,y1,x2,y2,r:integer);
-	var s:string;
 	begin	
-		setfillstyle(1,9);	
+		{setfillstyle(1,color);	}
 		if r=0 then {rotatex=x;rotatey=y;}
 			bar(sx+x1,sy+y1,sx+x2,sy+y2);
-		if r=2 then {rotatex=15-y;rotatey=x;}
+		if r=1 then {rotatex=15-y;rotatey=x;}
 			bar(sx+15-y2,sy+x2,sx+15-y1,sy+x1);
-		if r=1 then {rotatex=15-x;rotatey=15-y;}
+		if r=2 then {rotatex=15-x;rotatey=15-y;}
 			bar(sx+15-x1,sy+15-y1,sx+15-x2,sy+15-y2);
 		if r=3 then {rotatex=y;rotatey=15-x;}
 			bar(sx+y1,sy+15-x1,sx+y2,sy+15-x2);
-		setcolor(15);
-		str(r,s);
-		OutTextXY(sx+5,sy+5,s);
 	end;
+	
 	procedure rotateline(sx,sy,x1,y1,x2,y2,r:integer);
 	begin	
-		setcolor(9);
+		{setcolor(color);}
 		if r=0 then {rotatex=x;rotatey=y;}
 			line(sx+x1,sy+y1,sx+x2,sy+y2);
 		if r=1 then {rotatex=15-y;rotatey=x;}
@@ -273,8 +270,9 @@ Implementation
 			line(sx+y1,sy+15-x1,sx+y2,sy+15-x2);		
 	end;
 	
-	procedure drawsegment2(var x,y:integer; variant:integer);
+	procedure drawsegment2(x,y,variant:integer);
 	var sx,sy,h1,h2,v1,v2:integer;
+		s:string;
 	begin		
 			sx:=x*16;
 			sy:=y*16;
@@ -292,6 +290,9 @@ Implementation
 				rotateline(sx,sy,5,5,15,5,variant-3) ;
 				rotateline(sx,sy,4,6,15,6,variant-3) ;}
 				{putpixel( 13+sx,13+sy,9)  ;}
+					setcolor(15);
+					str(variant-3,s);
+					OutTextXY(sx+5,sy+5,s);
 			end;
 
 	end;
@@ -331,9 +332,56 @@ Implementation
 			end;
 	end;
 	
+	procedure drawhead2(var x,y:integer; variant:integer;istail:boolean);
+	var sx,sy,rotate:integer;
+		s:string;
+	begin
+			if istail then begin
+				case variant of
+					5:rotate:=2;
+					6:rotate:=3;
+					7:rotate:=0;
+					8:rotate:=1;
+				end;
+				boardsegment(x,y);
+			end
+			else rotate:=variant-1;
+			sx:=x*16;
+			sy:=y*16;
+			setfillstyle(1,9);setcolor(9);
+			rotatebar(sx,sy,0,2,11,13,rotate);
+			rotatebar(sx,sy,12,3,13,12,rotate);
+			rotateline(sx,sy,14,4,14,11,rotate);
+			rotateline(sx,sy,15,6,15,9,rotate);
+			if not istail then begin
+				rotateline(sx,sy,3,1,7,1,rotate);
+				rotateline(sx,sy,4,0,6,0,rotate);
+				rotateline(sx,sy,3,14,7,14,rotate);
+				rotateline(sx,sy,4,15,6,15,rotate);	
+				setfillstyle(1,15);setcolor(15);
+				rotatebar(sx,sy,3,2,4,3,rotate);
+				rotateline(sx,sy,4,1,6,1,rotate);
+				rotateline(sx,sy,4,4,6,4,rotate);
+				rotateline(sx,sy,7,2,7,3,rotate);	
+				rotatebar(sx,sy,3,12,4,13,rotate);
+				rotateline(sx,sy,4,11,6,11,rotate);
+				rotateline(sx,sy,4,14,6,14,rotate);
+				rotateline(sx,sy,7,12,7,13,rotate);	
+			end;	
+		if istail then begin
+			setcolor(15);
+			str(variant,s);
+			OutTextXY(sx+5,sy+5,s);
+		end;
+	end;
+	
+		
 	procedure drawhead;
 	var sx,sy:integer;
 	begin
+		if (debug)and(variant>4) then drawhead2(x,y,variant,true) 
+		else if (debug)and(variant<>0) then drawhead2(x,y,variant,false) 
+		else begin {если не debag, то рисуем стандарную голову}
 			sx:=x*16;
 			sy:=y*16;
 
@@ -363,7 +411,7 @@ Implementation
 			bar(sx+5,sy+14,sx+10,sy+15);
 			bar(sx+11,sy+11,sx+13,sy+13);
 			bar(sx+14,sy+2,sx+15,sy+10);
-
+		end;
 	end;
 	
 	procedure pain;

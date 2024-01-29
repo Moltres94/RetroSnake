@@ -83,7 +83,7 @@ begin
 	for i:=0 to 19 do
 		for j:=0 to 11 do
 			drawbonus(i,j,0);
-	drawhead(posx[1],posy[1],2);
+	drawhead(posx[1],posy[1],2,segm[1],debug);
 	for i:=2 to length do 
 		drawsegment(posx[i],posy[i],segm[i],debug);
 end;
@@ -101,7 +101,7 @@ end;
 
 procedure drawstatus;
 begin
-			str(godmode,fpss);str(length-3,scores);
+			str(best,fpss);str(length-3,scores);
 			setfillstyle(1,141+color);bar(0,192,320,200);
 			setcolor(15);
 			OutTextXY(5,192,'Score: '+scores);
@@ -140,13 +140,13 @@ begin
     posx[1]:=7;posx[2]:=6;posx[3]:=5;
     posy[1]:=5;posy[2]:=5;posy[3]:=5;
 	if thin then begin
-		segm[1]:=1;segm[2]:=1;segm[3]:=1;
+		segm[1]:=1;segm[2]:=1;segm[3]:=5;
 	end;
 	nextx:=posx[1];nexty:=posy[1];needclear:=true;needbonus:=false;
     length:=3;mes:='pause';gameover:=false; cheat:=false;speed:=4;godmode:=0;mestimer:=0;
 	for i:=length downto 2 do
 		drawsegment(posx[i],posy[i],segm[i],debug);
-	drawhead(posx[1],posy[1],0);
+	drawhead(posx[1],posy[1],0,segm[1],debug);
 	if music then pain;
 	setfillstyle(1,141+color);bar(0,192,320,200);setcolor(14);OutTextXY(30,192,'Go!');
 	needdraw:=true; timer:=0 ;repeat until(timer=4);
@@ -169,7 +169,7 @@ begin
 	for i:=1 to length do begin
 		posx[i]:=random(20);
 		posy[i]:=random(12);
-		if i=1 then drawhead(posx[i],posy[i],5)
+		if i=1 then drawhead(posx[i],posy[i],5,segm[1],debug)
 			else drawsegment(posx[i],posy[i],segm[i],debug);
 	end;
 	mes:='Bang!'; pause:=true; gameoverp;needdraw:=true;
@@ -217,7 +217,7 @@ begin
 			else if (k=#27)  then begin mes:='Exit to DOS?'; pause:=true; needdraw:=true; end
 			else if k='e' then effects:=not effects
 			else if k='d' then debug:=not debug
-			else if k='t' then thin:=not thin
+			else if k='t' then begin thin:=not thin; if not thin then segm[1]:=0; end
 			else if k='w' then  begin wallwalk:=not wallwalk; needdraw:=true; end
 			else if (k='g')and (not pause) then  begin 
 					godmode:=godmode +1; if godmode>3 then godmode:=0; mestimer:=4; str(godmode,mes);mes:='godmode: '+mes; needdraw:=true; 
@@ -250,7 +250,16 @@ begin
 				if godmode =3 then if collision(posx[length],posy[length],1,length-1) then needclear:=false;
 				if (not cheat)and (needclear) then begin
 					boardsegment(posx[length],posy[length]);
+					if (debug) and (thin) then
+					begin
+						if (posy[length-2]=posy[length-1])and (posx[length-2]>posx[length-1])then segm[length-1]:=5 {ëØá ëÖ}
+						else if (posy[length-2]=posy[length-1])and (posx[length-2]<posx[length-1])then segm[length-1]:=7 {ëÐ¨ëÖ}
+						else if (posy[length-2]<posy[length-1])then segm[length-1]:=8 {ëë¨áµ}
+						else if (posy[length-2]>posy[length-1])then segm[length-1]:=6; {ëÔ·ó}
+						drawhead(posx[length-1],posy[length-1],0,segm[length-1],true); {á·ãç¨Ò µëÖãå}
+					end;
 				end;	
+
 					
 				needclear:=true;
 				
@@ -264,10 +273,12 @@ begin
 				posy[1]:=nexty;
 				segm[2]:=0;
 				if thin then begin
+					segm[1]:=napr;
+					
 					if posx[1]=posx[3] then segm[2]:=2
 					else if posy[1]=posy[3] then segm[2]:=1
-					else if (posx[3]-posx[1]=1)  and (posy[3]-posy[1]=-1) and (posx[2]=posx[1]) then segm[2]:=4
-					else if (posx[3]-posx[1]=-1) and (posy[3]-posy[1]=1)  and (posx[2]=posx[3]) then segm[2]:=4
+					else if (posx[3]-posx[1]=1)  and (posy[3]-posy[1]=-1) and (posx[2]=posx[1]) then segm[2]:=5
+					else if (posx[3]-posx[1]=-1) and (posy[3]-posy[1]=1)  and (posx[2]=posx[3]) then segm[2]:=5
 					
 					else if (posx[3]-posx[1]=1)  and (posy[3]-posy[1]= 1) and (posx[2]=posx[3]) then segm[2]:=6
 					else if (posx[3]-posx[1]=-1) and (posy[3]-posy[1]=-1) and (posx[2]=posx[1]) then segm[2]:=6
@@ -275,8 +286,8 @@ begin
 					else if (posx[3]-posx[1]=1)  and (posy[3]-posy[1]=-1) {and (posx[2]=posx[3])} then segm[2]:=3
 					else if (posx[3]-posx[1]=-1) and (posy[3]-posy[1]=1)  {and (posx[2]=posx[1])} then segm[2]:=3
 					
-					else if (posx[3]-posx[1]=1)  {and (posy[3]-posy[1]= 1) =and (posx[2]=posx[1])} then segm[2]:=5
-					else if (posx[3]-posx[1]=-1) {and (posy[3]-posy[1]=-1) and (posx[2]=posx[3])} then segm[2]:=5;
+					else if (posx[3]-posx[1]=1)  {and (posy[3]-posy[1]= 1) =and (posx[2]=posx[1])} then segm[2]:=4
+					else if (posx[3]-posx[1]=-1) {and (posy[3]-posy[1]=-1) and (posx[2]=posx[3])} then segm[2]:=4;
 				end;
 				
 				if (posx[1]=bonusx) and (posy[1]=bonusy) then 
@@ -296,7 +307,7 @@ begin
 					else if (posy[1]<0) then posy[1]:=11;
 				end;
 
-				drawhead(posx[1],posy[1],godmode);
+				drawhead(posx[1],posy[1],godmode,segm[1],debug);
 				drawsegment(posx[2],posy[2],segm[2],debug);
 				
 				if cheat then begin length:=length+1; needdraw:=true;Sound(1568);beep:=1;end;
@@ -326,8 +337,7 @@ begin
 			end
 			else if (godmode=0) then begin mes:='Game over!';gameoverp; end
 			else if (godmode=1) then begin nextx:=posx[1]; nexty:=posy[1]; end
-			else if (godmode=2) then begin
-				
+			else if (godmode=2) then begin		
 				for i:=1 to length div 2 do
 				begin
 					j:=posx[i];

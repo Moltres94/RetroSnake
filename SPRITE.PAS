@@ -4,28 +4,68 @@ Interface
 	procedure fillboard;
 	procedure drawbonus(var x,y:integer; bonus2type:integer);
 	procedure boardsegment(var x,y:integer);
-	procedure drawsegment(var x,y:integer; variant:integer;debug:boolean);
-	procedure drawhead(var x,y:integer; eyecolor:integer; variant:integer;debug:boolean);
+	procedure drawsegment(var x,y:integer; variant:integer);
+	procedure drawhead(var x,y:integer; eyecolor:integer; variant:integer);
 	procedure colorshift(x:integer);
+	procedure setdebug(x:boolean);
+	{procedure setthin(x:boolean);}
+	procedure setnewskin(x:boolean);
+	procedure light;
 	procedure pain;
 
 {---------------------------------}
 Implementation
     uses graph,crt;
 	var color:integer;
+		{thin,}debug,newskin,lightb:boolean;
 		colors:array[1..10] of integer;
-		
+	
+	procedure setdebug;
+	begin
+		debug:=x;
+	end;
+	
+	{procedure setthin;
+	begin
+		thin:=x;
+	end;}
+	
+	procedure setnewskin;
+	begin
+		newskin:=x;
+	end;
+	
+	procedure light;
+	begin
+		lightb:=not lightb;
+		if (newskin) and (lightb) then begin
+			colors[6]:=45;
+			colors[7]:=71;
+		end;
+	end;
+	
 	procedure colorshift;
 	begin
 		color:=x;
+		if (newskin) and (lightb) then begin
+			colors[6]:=45;
+			colors[7]:=71;
+		end
+		else begin
+			colors[6]:=216+color;
+			colors[7]:=214+color;
+			colors[8]:=215+color;
+			colors[9]:=71+color;
+			colors[10]:=141+color;
+		end;
 	end;
 	
 	procedure fillboard;
 	var wi,wj,i:integer;
 	begin
-			setfillstyle(1,216+color);
+			setfillstyle(1,colors[6]);
 			bar(0,0,320,191);
-			setfillstyle(1,214+color);
+			setfillstyle(1,colors[7]);
 			wi:=0;
 			wj:=0;
 			repeat
@@ -37,9 +77,10 @@ Implementation
 							else wi:=0;
 							wj:=wj+16;
 							end;
-					until wj>=192;
-			for i:=0 to 255 do
-				putpixel(i,0,i);
+			until wj>=192;
+			if debug then 		
+				for i:=0 to 255 do
+					putpixel(i,0,i);
 	end;
 
 	procedure redberry(sx,sy:integer);
@@ -239,8 +280,8 @@ Implementation
 	begin
 			sx:=x*16;
 			sy:=y*16;
-			if (x+y)mod 2 =0 then setfillstyle(1,214+color)
-			else setfillstyle(1,216+color);
+			if (x+y)mod 2 =0 then setfillstyle(1,colors[7])
+			else setfillstyle(1,colors[6]);
 			bar(sx,sy,sx+15,sy+15);
 	end;
 
@@ -290,9 +331,11 @@ Implementation
 				rotateline(sx,sy,5,5,15,5,variant-3) ;
 				rotateline(sx,sy,4,6,15,6,variant-3) ;}
 				{putpixel( 13+sx,13+sy,9)  ;}
+				if (debug) then begin
 					setcolor(15);
 					str(variant-3,s);
 					OutTextXY(sx+5,sy+5,s);
+				end;
 			end;
 
 	end;
@@ -300,12 +343,12 @@ Implementation
 	procedure drawsegment;
 	var sx,sy,h1,h2,v1,v2:integer;
 	begin		
-			if (debug)and(variant<>0) then drawsegment2(x,y,variant) else 
+			if (newskin) then drawsegment2(x,y,variant) else 
 			begin
 				sx:=x*16;
 				sy:=y*16;
 				v1:=0;v2:=0;  h1:=0;h2:=0;
-				if variant<>0 then begin boardsegment(x,y);
+				if variant<>0 then begin boardsegment(x,y); {тонкая, стандартный скин}
 					case variant of
 					  1:begin v1:=1;v2:=1; end;
 					  2:begin h1:=1;h2:=1; end;
@@ -317,15 +360,15 @@ Implementation
 				end;
 				setfillstyle(1,18);
 				bar(sx+h1,sy+v1,sx+15-h2,sy+15-v2);
-				setfillstyle(1,141+color);
+				setfillstyle(1,colors[10]);
 				bar(sx+2,sy+2,sx+13,sy+13);
 				{if effects then begin  }
-				   setfillstyle(1,71+color);
+				   setfillstyle(1,colors[9]);
 				   bar(sx+2,sy+2,sx+7,sy+9);
 				   setfillstyle(1,15);
 				   bar(sx+2,sy+2,sx+4,sy+4);
 				{end; }
-				setfillstyle(1,215+color);
+				setfillstyle(1,colors[8]);
 				bar(sx+4,sy+4,sx+11,sy+11);
 				setfillstyle(1,18);
 				bar(sx+5,sy+5,sx+10,sy+10);
@@ -368,7 +411,7 @@ Implementation
 				rotateline(sx,sy,4,14,6,14,rotate);
 				rotateline(sx,sy,7,12,7,13,rotate);	
 			end;	
-		if istail then begin
+		if debug then begin
 			setcolor(15);
 			str(variant,s);
 			OutTextXY(sx+5,sy+5,s);
@@ -379,13 +422,13 @@ Implementation
 	procedure drawhead;
 	var sx,sy:integer;
 	begin
-		if (debug)and(variant>4) then drawhead2(x,y,variant,true) 
-		else if (debug)and(variant<>0) then drawhead2(x,y,variant,false) 
+		if (newskin)and(variant>4) then drawhead2(x,y,variant,true) 
+		else if (newskin) then drawhead2(x,y,variant,false) 
 		else begin {если не debag, то рисуем стандарную голову}
 			sx:=x*16;
 			sy:=y*16;
 
-			setfillstyle(1,141+color);		
+			setfillstyle(1,colors[10]);		
 			bar(sx+2,sy+9,sx+13,sy+13);
 
 			case eyecolor of
@@ -400,7 +443,7 @@ Implementation
 			setfillstyle(1,18);
 			bar(sx+5,sy+5,sx+10,sy+8);
 
-			setfillstyle(1,215+color);
+			setfillstyle(1,colors[8]);
 			bar(sx+7,sy+2,sx+8,sy+8);
 			bar(sx+5,sy+9,sx+10,sy+10);		
 

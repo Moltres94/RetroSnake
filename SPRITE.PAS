@@ -322,15 +322,10 @@ Implementation
 			if variant=1 then bar(sx,sy+2,sx+15,sy+13);
 			if variant=2 then bar(sx+2,sy,sx+13,sy+15);
 			if variant>2 then begin
-				rotatebar(sx,sy,2,2,15,13,variant-3);
-				rotatebar(sx,sy,2,14,13,15,variant-3);
-				{rotatebar(sx,sy,7,7,15,12,variant-3);
-				rotatebar(sx,sy,3,13,12,15,variant-3);
-				rotateline(sx,sy,7,3,15,3,variant-3) ;
-				rotateline(sx,sy,6,4,15,4,variant-3) ;
-				rotateline(sx,sy,5,5,15,5,variant-3) ;
-				rotateline(sx,sy,4,6,15,6,variant-3) ;}
-				{putpixel( 13+sx,13+sy,9)  ;}
+				rotatebar(sx,sy,1,0,13,11,variant-3);
+				rotateline(sx,sy,0,1,0,13,variant-3);
+				rotateline(sx,sy,1,12,12,12,variant-3);
+				rotateline(sx,sy,1,13,11,13,variant-3);
 				if (debug) then begin
 					setcolor(15);
 					str(variant-3,s);
@@ -375,7 +370,7 @@ Implementation
 			end;
 	end;
 	
-	procedure drawhead2(var x,y:integer; variant:integer;istail:boolean);
+	procedure drawhead2(x,y,variant,eyecolor:integer;istail:boolean);
 	var sx,sy,rotate:integer;
 		s:string;
 	begin
@@ -401,7 +396,12 @@ Implementation
 				rotateline(sx,sy,4,0,6,0,rotate);
 				rotateline(sx,sy,3,14,7,14,rotate);
 				rotateline(sx,sy,4,15,6,15,rotate);	
-				setfillstyle(1,15);setcolor(15);
+				case eyecolor of
+					1:begin setfillstyle(1,10);setcolor(10);end;
+					2:begin setfillstyle(1,36);setcolor(36);end;
+					3:begin setfillstyle(1,53);setcolor(53);end
+					else begin setfillstyle(1,15);setcolor(15);end;
+				end;
 				rotatebar(sx,sy,3,2,4,3,rotate);
 				rotateline(sx,sy,4,1,6,1,rotate);
 				rotateline(sx,sy,4,4,6,4,rotate);
@@ -422,8 +422,8 @@ Implementation
 	procedure drawhead;
 	var sx,sy:integer;
 	begin
-		if (newskin)and(variant>4) then drawhead2(x,y,variant,true) 
-		else if (newskin) then drawhead2(x,y,variant,false) 
+		if (newskin)and(variant>4) then drawhead2(x,y,variant,0,true) 
+		else if (newskin) then drawhead2(x,y,variant,eyecolor,false) 
 		else begin {если не debag, то рисуем стандарную голову}
 			sx:=x*16;
 			sy:=y*16;

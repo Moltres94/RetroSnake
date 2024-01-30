@@ -83,9 +83,10 @@ begin
 	for i:=0 to 19 do
 		for j:=0 to 11 do
 			drawbonus(i,j,0);
-	drawhead(posx[1],posy[1],2,segm[1]);
+	drawhead(posx[1],posy[1],godmode,segm[1]);
 	for i:=2 to length do 
-		drawsegment(posx[i],posy[i],segm[i]);
+		if (i=length) and (newskin) then drawhead(posx[i],posy[i],0,segm[i])
+			else drawsegment(posx[i],posy[i],segm[i]);
 end;
 
 function collision(x,y,startpos,endpos:integer):boolean;
@@ -175,8 +176,8 @@ begin
 	for i:=1 to length do begin
 		posx[i]:=random(20);
 		posy[i]:=random(12);
-		if i=1 then drawhead(posx[i],posy[i],5,segm[1])
-			else if (i=length) and (newskin) then drawhead(posx[i],posy[i],5,segm[6])
+		if i=1 then drawhead(posx[i],posy[i],godmode,segm[i])
+			else if (i=length) and (newskin) then drawhead(posx[i],posy[i],1,segm[i])
 				else drawsegment(posx[i],posy[i],segm[i]);
 	end;
 	mes:='Bang!'; pause:=true; gameoverp;needdraw:=true;
@@ -235,7 +236,7 @@ begin
 			else if k='b' then bang
 			else if k='n' then start
 			else if k='l' then light
-			else if k='1' then needbonus:=true
+			else if k='1' then begin boardsegment(bonusx2,bonusy2);needdraw:=true;bonus2type:=0;needbonus:=true; end
 			else if k='x' then 	nextcolor:=true
 			else if (k='s') then begin newskin:=not newskin; if not newskin then segm[1]:=0; setnewskin(newskin);end
 			else if (k='+') and (speed>1) then speed:=speed-1

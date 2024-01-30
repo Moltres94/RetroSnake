@@ -3,16 +3,16 @@ uses crt,graph,windos,sprite;
 var SvInt1C: procedure;
 	gd,gm, bonus2type,bonustimer:integer;
     i,j,bonusx,bonusy,bonusx2,bonusy2,napr,napr2,timer,speed,color:integer;
-	fpss, scores, mes, bonuss:string;
+	fpss, scores, mes, cheats:string;
     pause, gameover, effects,drawcomplete,bonus,cheat,wallwalk:boolean;
 	needdraw,needclear,music, nextcolor,needbonus,exi:boolean;
-	thin,debug,newskin:boolean;
+	thin,debug,newskin,cheatsmode:boolean;
     k:char;
 	Driver, Mode, TestDriver, ErrCode: Integer;
 	posx,posy : array[1..240] of integer;
 	segm:array[1..240] of byte;
 	nextsegment:byte;
-	length, best,nextx, nexty, godmode,beep,mestimer:integer;
+	lengt, best,nextx, nexty, godmode,beep,mestimer:integer;
 	
 {$F+}
 function TestDetect: Integer;
@@ -84,8 +84,8 @@ begin
 		for j:=0 to 11 do
 			drawbonus(i,j,0);
 	drawhead(posx[1],posy[1],godmode,segm[1]);
-	for i:=2 to length do 
-		if (i=length) and (newskin) then drawhead(posx[i],posy[i],0,segm[i])
+	for i:=2 to lengt do 
+		if (i=lengt) and (newskin) then drawhead(posx[i],posy[i],0,segm[i])
 			else drawsegment(posx[i],posy[i],segm[i]);
 end;
 
@@ -102,11 +102,15 @@ end;
 
 procedure drawstatus;
 begin
-			str(best,fpss);str(length-3,scores);
-			setfillstyle(1,141+color);bar(0,192,320,200);
-			setcolor(15);
+			str(best,fpss);str(lengt-3,scores);
+			if (cheatsmode) then setfillstyle(1,15)
+				else setfillstyle(1,141+color);
+			bar(0,192,320,200);
+			if (cheatsmode) then setcolor(141+color)
+				else setcolor(15);
 			OutTextXY(5,192,'Score: '+scores);
-			OutTextXY(85,192,'Best:'+fpss);
+			if length(cheats)>0 then OutTextXY(85,192,'Best:'+cheats)
+				else OutTextXY(85,192,'Best:'+fpss);
 			{if bonustimer>0 then begin
 				str(bonustimer,bonuss);
 				OutTextXY(165,192,bonuss);
@@ -116,8 +120,8 @@ begin
 			if pause then OutTextXY(165,192,mes);
 			if mestimer>0 then OutTextXY(165,192,mes);
 			
-			if (pause)and(debug) then begin bar(164,8,220,9*length+8);
-			for i:=1 to length do begin
+			if (pause)and(debug) then begin bar(164,8,220,9*lengt+8);
+			for i:=1 to lengt do begin
 				mes:='';
 				str(posx[i],fpss);
 				mes:=mes+fpss+' ';
@@ -148,9 +152,9 @@ begin
 		segm[1]:=1;segm[2]:=1;segm[3]:=1;
 	end;
 	nextx:=posx[1];nexty:=posy[1];needclear:=true;needbonus:=false;
-    length:=3;mes:='pause';gameover:=false; cheat:=false;speed:=4;godmode:=0;mestimer:=0;
-	for i:=length downto 2 do begin
-		if (newskin) and (i=length) then drawhead(posx[i],posy[i],0,segm[i])
+    lengt:=3;mes:='pause';gameover:=false; cheat:=false;speed:=4;godmode:=0;mestimer:=0;
+	for i:=lengt downto 2 do begin
+		if (newskin) and (i=lengt) then drawhead(posx[i],posy[i],0,segm[i])
 			else drawsegment(posx[i],posy[i],segm[i]);
 	end;
 	drawhead(posx[1],posy[1],0,segm[1]);
@@ -162,8 +166,8 @@ end;
 
 procedure gameoverp;
 begin
-	if (length-3)>best then begin 
-		best:=length-3;
+	if (lengt-3)>best then begin 
+		best:=lengt-3;
 		crypt(best,true);
 		if best>=20 then nextcolor:=true;
 	end;
@@ -173,11 +177,11 @@ end;
 procedure bang;
 begin
 	fillboard;
-	for i:=1 to length do begin
+	for i:=1 to lengt do begin
 		posx[i]:=random(20);
 		posy[i]:=random(12);
 		if i=1 then drawhead(posx[i],posy[i],godmode,segm[i])
-			else if (i=length) and (newskin) then drawhead(posx[i],posy[i],1,segm[i])
+			else if (i=lengt) and (newskin) then drawhead(posx[i],posy[i],1,segm[i])
 				else drawsegment(posx[i],posy[i],segm[i]);
 	end;
 	mes:='Bang!'; pause:=true; gameoverp;needdraw:=true;
@@ -202,7 +206,7 @@ begin
 	end;
 
 	best:=crypt(0,false);
-	music:=true;debug:=false;{setthin(false);}setdebug(false);setnewskin(false);
+	music:=true;debug:=false;{setthin(false);}setdebug(false);setnewskin(false);cheats:='';
 	start;
 
 	Randomize;
@@ -217,6 +221,12 @@ begin
 		if (keypressed) then
 		begin
 			k:=readkey;
+			if (k='s') and (cheats='') then begin cheats:='s';needdraw:=true;end 
+				else if (k='n') and (cheats='s') then begin cheats:='sn';needdraw:=true;end 
+				else if (k='a') and (cheats='sn') then begin cheats:='sna' ;needdraw:=true;end 
+				else if (k='k') and (cheats='sna') then begin cheats:='snak' ;needdraw:=true;end 
+				else if (k='e') and (cheats='snak') then begin cheatsmode:=true;needdraw:=true;cheats:=''end 
+				else if length(cheats)>0 then begin cheats:='';needdraw:=true;end; 
 			if (k=#77) and (napr<>3)and (napr2=0) then napr2:=1
 			else if (k=#80) and (napr<>4)and (napr2=0) then napr2:=2
 			else if (k=#75) and (napr<>1)and (napr2=0) then napr2:=3
@@ -226,21 +236,21 @@ begin
 			else if k='e' then effects:=not effects
 			else if k='d' then begin debug:=not debug; setdebug(debug); end
 			else if k='t' then begin thin:=not thin;  {setthin(thin);}end
-			else if k='w' then  begin wallwalk:=not wallwalk; needdraw:=true; end
-			else if (k='g')and (not pause) then  begin 
+			else if (k='w')and (cheatsmode) then  begin wallwalk:=not wallwalk; needdraw:=true; end
+			else if (k='g')and (not pause)and (cheatsmode) then  begin 
 					godmode:=godmode +1; if godmode>3 then godmode:=0; mestimer:=4; str(godmode,mes);mes:='godmode: '+mes; needdraw:=true; 
 				end
 			else if k='m' then  begin music:=not music; needdraw:=true; end
 			else if ((k='p') or (k=#13)) and (gameover) then begin pause:=not pause;start; end
 			else if (k='p') or (k=#13) then begin mes:='pause';pause:=not pause;needdraw:=true; end
 			else if k='b' then bang
-			else if k='n' then start
+			else if (k='n')and (length(cheats)=0) then start
 			else if k='l' then light
-			else if k='1' then begin boardsegment(bonusx2,bonusy2);needdraw:=true;bonus2type:=0;needbonus:=true; end
+			else if (k='1')and (cheatsmode) then begin boardsegment(bonusx2,bonusy2);needdraw:=true;bonus2type:=0;needbonus:=true; end
 			else if k='x' then 	nextcolor:=true
 			else if (k='s') then begin newskin:=not newskin; if not newskin then segm[1]:=0; setnewskin(newskin);end
 			else if (k='+') and (speed>1) then speed:=speed-1
-			else if k='c' then begin cheaton; cheat:=true; bonusx:=-2; bonus:=true;end;
+			else if (k='c')and (cheatsmode) then begin cheaton; cheat:=true; bonusx:=-2; bonus:=true;end;
 		end;
 		
 
@@ -257,17 +267,17 @@ begin
 			else if (napr=3) then nextx:=posx[1]-1
 			else if (napr=4) then nexty:=posy[1]-1;
 			
-			if (not collision(nextx,nexty,4,length-1)) or (godmode=3)then begin
-				if godmode =3 then if collision(posx[length],posy[length],1,length-1) then needclear:=false;
+			if (not collision(nextx,nexty,4,lengt-1)) or (godmode=3)then begin
+				if godmode =3 then if collision(posx[lengt],posy[lengt],1,lengt-1) then needclear:=false;
 				if (not cheat)and (needclear) then begin
-					boardsegment(posx[length],posy[length]);
+					boardsegment(posx[lengt],posy[lengt]);
 					if (newskin) then {á·ãç¨Ò µëÖãå}
 					begin
-						if (posy[length-2]=posy[length-1])and (posx[length-2]>posx[length-1])then segm[length-1]:=5 {ëØá ëÖ}
-						else if (posy[length-2]=posy[length-1])and (posx[length-2]<posx[length-1])then segm[length-1]:=7 {ëÐ¨ëÖ}
-						else if (posy[length-2]<posy[length-1])then segm[length-1]:=8 {ëë¨áµ}
-						else if (posy[length-2]>posy[length-1])then segm[length-1]:=6; {ëÔ·ó}
-						drawhead(posx[length-1],posy[length-1],0,segm[length-1]); 
+						if (posy[lengt-2]=posy[lengt-1])and (posx[lengt-2]>posx[lengt-1])then segm[lengt-1]:=5 {ëØá ëÖ}
+						else if (posy[lengt-2]=posy[lengt-1])and (posx[lengt-2]<posx[lengt-1])then segm[lengt-1]:=7 {ëÐ¨ëÖ}
+						else if (posy[lengt-2]<posy[lengt-1])then segm[lengt-1]:=8 {ëë¨áµ}
+						else if (posy[lengt-2]>posy[lengt-1])then segm[lengt-1]:=6; {ëÔ·ó}
+						drawhead(posx[lengt-1],posy[lengt-1],0,segm[lengt-1]); 
 					end;
 				end;	
 
@@ -275,7 +285,7 @@ begin
 				needclear:=true;
 				
 				
-				for i:=length downto 2 do begin
+				for i:=lengt downto 2 do begin
 					posx[i]:=posx[i-1];
 					posy[i]:=posy[i-1];
 					segm[i]:=segm[i-1];
@@ -303,12 +313,12 @@ begin
 				
 				if (posx[1]=bonusx) and (posy[1]=bonusy) then 
 				begin 
-					inc(length); needdraw:=true; needclear:=false; bonus:=false; Sound(1568);beep:=1;
+					inc(lengt); needdraw:=true; needclear:=false; bonus:=false; Sound(1568);beep:=1;
 				end;
 				if (posx[1]=bonusx2) and (posy[1]=bonusy2) then 
 				begin 
 					godmode:=bonus2type;
-					inc(length); needdraw:=true; needclear:=false; bonus2type:=0; bonusy2:=-2; bonustimer:=100;Sound(1568);beep:=1;
+					inc(lengt); needdraw:=true; needclear:=false; bonus2type:=0; bonusy2:=-2; bonustimer:=100;Sound(1568);beep:=1;
 				end;
 
 				if (wallwalk) or (godmode=3) then begin
@@ -321,15 +331,15 @@ begin
 				drawhead(posx[1],posy[1],godmode,segm[1]);
 				drawsegment(posx[2],posy[2],segm[2]);
 				
-				if cheat then begin length:=length+1; needdraw:=true;Sound(1568);beep:=1;end;
-				if length>=240 then begin mes:='you win!'; gameoverp; end;
+				if cheat then begin lengt:=lengt+1; needdraw:=true;Sound(1568);beep:=1;end;
+				if lengt>=240 then begin mes:='you win!'; gameoverp; end;
 
 				if not bonus then repeat
 					i:=random(20);
 					if (i=1)and (bonustimer=-1) then needbonus:=true;
 					bonusx:=random(20);
 					bonusy:=random(12);
-					if not collision(bonusx,bonusy,1, length) then
+					if not collision(bonusx,bonusy,1, lengt) then
 						bonus:=true;
 					if (bonusx=bonusx2) and (bonusy=bonusy2) then bonus:=false;
 					if bonus then drawbonus(bonusx,bonusy,0);
@@ -337,7 +347,7 @@ begin
 				if needbonus then repeat
 					bonusx2:=random(20);
 					bonusy2:=random(12);
-					if not collision(bonusx2,bonusy2,1, length) then
+					if not collision(bonusx2,bonusy2,1, lengt) then
 						bonus2type:=random(3)+1;
 					if (bonusx=bonusx2) and (bonusy=bonusy2) then bonus2type:=0;
 					if (bonus2type>0) then drawbonus(bonusx2,bonusy2,bonus2type);
@@ -349,14 +359,14 @@ begin
 			else if (godmode=0) then begin mes:='Game over!';gameoverp; end
 			else if (godmode=1) then begin nextx:=posx[1]; nexty:=posy[1]; end
 			else if (godmode=2) then begin		
-				for i:=1 to length div 2 do
+				for i:=1 to lengt div 2 do
 				begin
 					j:=posx[i];
-					posx[i]:=posx[length-i+1];
-					posx[length-i+1]:=j;
+					posx[i]:=posx[lengt-i+1];
+					posx[lengt-i+1]:=j;
 					j:=posy[i];
-					posy[i]:=posy[length-i+1];
-					posy[length-i+1]:=j;
+					posy[i]:=posy[lengt-i+1];
+					posy[lengt-i+1]:=j;
 				end;
 				nextx:=posx[1];
 				nexty:=posy[1];
